@@ -111,7 +111,9 @@ registry.registerPath({
   method: "post",
   path: "/cases",
   tags: ["Cases"],
-  summary: "Create a tuition case",
+  summary: "Create new case",
+  description:
+    "Creates a new tuition case listing. Only users with the PARENT role can call this endpoint. Required fields are title, subject, level, location, and budget per hour. Status is optional and defaults to OPEN.",
   security: secured,
   request: {
     body: { content: { "application/json": { schema: createCaseSchema } } },
@@ -131,9 +133,9 @@ registry.registerPath({
   method: "get",
   path: "/cases",
   tags: ["Cases"],
-  summary: "List tuition cases",
+  summary: "List cases",
   description:
-    "Parents see their own cases. Tutors see cases they have been invited to. Supports pagination, search, and filters.",
+    "Returns a paginated list of tuition cases. Parents see only cases they created. Tutors see only cases they have been invited to. Supports filtering by search (title), subject, level, and status, plus page and limit for pagination.",
   security: secured,
   request: {
     query: caseListQuerySchema,
@@ -151,7 +153,9 @@ registry.registerPath({
   method: "get",
   path: "/cases/{id}",
   tags: ["Cases"],
-  summary: "Get a tuition case",
+  summary: "Get case",
+  description:
+    "Returns full details for a single case, including the list of invited tutors. Parents can view their own cases. Tutors can view cases they are invited to. If the case does not exist or the caller has no access, the API returns 404.",
   security: secured,
   request: { params: caseIdParamSchema },
   responses: {
@@ -168,8 +172,9 @@ registry.registerPath({
   method: "patch",
   path: "/cases/{id}",
   tags: ["Cases"],
-  summary: "Update a tuition case",
-  description: "Parent owner only.",
+  summary: "Update case",
+  description:
+    "Updates an existing tuition case. Only the parent who owns the case may call this endpoint. Send one or more fields to change: title, subject, level, location, budget per hour, or status. At least one field is required.",
   security: secured,
   request: {
     params: caseIdParamSchema,
@@ -191,7 +196,9 @@ registry.registerPath({
   method: "post",
   path: "/cases/{id}/invitations",
   tags: ["Cases"],
-  summary: "Invite a tutor to a case",
+  summary: "Invite tutor",
+  description:
+    "Invites a tutor to a tuition case. Only the parent who owns the case may call this endpoint. The tutorId in the request body must belong to an existing user with the TUTOR role.",
   security: secured,
   request: {
     params: caseIdParamSchema,
@@ -212,7 +219,9 @@ registry.registerPath({
   method: "delete",
   path: "/cases/{id}/invitations/{tutorId}",
   tags: ["Cases"],
-  summary: "Revoke a tutor invitation",
+  summary: "Revoke invitation",
+  description:
+    "Revokes a tutor's invitation to a case. Only the parent who owns the case may call this endpoint. The tutorId in the path identifies which invitation to remove. Returns 204 when successful.",
   security: secured,
   request: { params: tutorIdParamSchema },
   responses: {

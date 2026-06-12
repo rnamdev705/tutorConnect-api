@@ -14,8 +14,15 @@ export function generateOpenApiDocument() {
     info: {
       title: "TutorConnect API",
       version: "1.0.0",
-      description: "Tuition marketplace API. Schemas are defined with Zod in each module.",
+      description:
+        "REST API for a tuition marketplace. Parents post cases and invite tutors; tutors browse cases they are invited to. Authenticate via POST /auth/login, then pass the JWT as a bearer token.",
     },
+    tags: [
+      { name: "Health", description: "Liveness checks for deploys and load balancers." },
+      { name: "Auth", description: "Login, logout, and current-user lookup." },
+      { name: "Cases", description: "Tuition listings, invitations, and access rules by role." },
+      { name: "Documents", description: "Files attached to a case (stored in Postgres)." },
+    ],
     servers: [
       {
         url: `http://localhost:${env.PORT}${env.API_PREFIX}`,

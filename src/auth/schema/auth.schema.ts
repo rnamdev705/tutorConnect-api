@@ -46,6 +46,8 @@ registry.registerPath({
   path: "/auth/login",
   tags: ["Auth"],
   summary: "Log in",
+  description:
+    "Authenticates a user with email and password. On success, returns a JWT bearer token along with the user's id, email, and role. Use the token in the Authorize dialog for all protected endpoints.",
   request: {
     body: { content: { "application/json": { schema: loginSchema } } },
   },
@@ -70,6 +72,7 @@ registry.registerPath({
   path: "/auth/logout",
   tags: ["Auth"],
   summary: "Log out",
+  description: "Stateless — drop the JWT on the client after calling this.",
   security: [{ bearerAuth: [] }],
   responses: {
     204: { description: "Logged out" },
@@ -84,7 +87,9 @@ registry.registerPath({
   method: "get",
   path: "/auth/me",
   tags: ["Auth"],
-  summary: "Current user",
+  summary: "Get current user",
+  description:
+    "Returns the profile of the currently authenticated user, including id, email, role (PARENT or TUTOR), and account timestamps. Requires a valid bearer token.",
   security: [{ bearerAuth: [] }],
   responses: {
     200: {

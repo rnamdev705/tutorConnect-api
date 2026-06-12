@@ -33,9 +33,9 @@ registry.registerPath({
   method: "post",
   path: "/cases/{caseId}/documents",
   tags: ["Documents"],
-  summary: "Upload a document to a case",
+  summary: "Upload document",
   description:
-    "File bytes are stored in PostgreSQL. Allowed types: pdf, docx, png, jpg. Max size via MAX_FILE_SIZE_MB (default 10 MB).",
+    "Uploads a document and attaches it to a tuition case. The file is sent as multipart form data with the field name `file`. Allowed types are PDF, DOCX, PNG, and JPG. Maximum file size is controlled by MAX_FILE_SIZE_MB (default 10 MB). The caller must have access to the case.",
   security: secured,
   request: {
     params: caseIdParamSchema,
@@ -67,7 +67,9 @@ registry.registerPath({
   method: "get",
   path: "/cases/{caseId}/documents",
   tags: ["Documents"],
-  summary: "List documents for a case",
+  summary: "List documents",
+  description:
+    "Lists all documents attached to a tuition case. Returns metadata only (name, mime type, size, uploader, timestamps). To retrieve the actual file content, use GET /documents/{id}/download.",
   security: secured,
   request: { params: caseIdParamSchema },
   responses: {
@@ -84,8 +86,9 @@ registry.registerPath({
   method: "get",
   path: "/documents/{id}/download",
   tags: ["Documents"],
-  summary: "Download a document",
-  description: "Re-checks case authorization before streaming the file.",
+  summary: "Download document",
+  description:
+    "Downloads a document by id. The server checks that the caller has access to the case the document belongs to before streaming the file bytes. The response Content-Type matches the stored mime type.",
   security: secured,
   request: { params: documentIdParamSchema },
   responses: {

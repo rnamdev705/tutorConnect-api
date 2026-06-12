@@ -14,6 +14,8 @@ registry.registerPath({
   path: "/health",
   tags: ["Health"],
   summary: "Health check",
+  description:
+    "Simple liveness check for monitoring and deployments. Does not require authentication. Returns the service status, current server timestamp, and process uptime in seconds.",
   responses: {
     200: {
       description: "Service is healthy",
