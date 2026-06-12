@@ -18,7 +18,6 @@ npm install
 cp .env.example .env   # set DATABASE_URL, DIRECT_URL (Neon), and JWT_SECRET
 npm run db:generate
 npm run db:migrate
-npm run db:seed
 npm run dev
 ```
 
@@ -29,7 +28,7 @@ Use two connection strings from the [Neon console](https://console.neon.tech):
 | Variable | Neon dashboard | Used by |
 |----------|----------------|---------|
 | `DATABASE_URL` | **Pooled** (`-pooler` in host) | API runtime (Prisma queries) |
-| `DIRECT_URL` | **Direct** | `prisma migrate`, `db push`, seed |
+| `DIRECT_URL` | **Direct** | `prisma migrate`, `db push` |
 
 Idle disconnect errors (`E57P01`) in dev are reduced with the pooled URL. Wake a suspended branch in the Neon console if the first request fails after idle time.
 
@@ -66,31 +65,26 @@ DB_KEEPALIVE_INTERVAL_MS=240000
 
 ## Auth
 
-Stateless **JWT** bearer tokens.
+Stateless **JWT** bearer tokens (signed with `JWT_SECRET`, expiry from `JWT_EXPIRES_IN`).
 
 | Endpoint | Auth | Description |
 |----------|------|-------------|
-| `POST /auth/login` | No | Returns `{ token, user }` |
+| `POST /auth/register` | No | Create account — returns `{ token, user }` |
+| `POST /auth/login` | No | Email + password (+ optional `role`) — returns `{ token, user }` |
 | `POST /auth/logout` | Yes | Client discards token (204) |
 | `GET /auth/me` | Yes | Current user profile |
 
 Send `Authorization: Bearer <token>` on protected routes.
 
+Passwords are hashed with bcrypt (12 rounds). Login returns the same generic error for wrong email, wrong password, or role mismatch.
+
 | Status | Meaning |
 |--------|---------|
-| `401` | Missing, invalid, or expired token |
+| `401` | Missing, invalid, or expired token / bad credentials |
 | `403` | Authenticated but wrong role (used by role middleware) |
+| `409` | Email already registered |
 
-## Demo credentials (after seed)
-
-Password for all accounts: `Demo1234!`
-
-| Email | Role |
-|-------|------|
-| sarah.chen@demo.com | Parent |
-| raj.kumar@demo.com | Parent |
-| alice.tan@demo.com | Tutor |
-| benjamin.lim@demo.com | Tutor |
+Create an account via `POST /auth/register` or the portal **Register** page before logging in.
 
 ## Scripts
 
@@ -102,7 +96,6 @@ Password for all accounts: `Demo1234!`
 | `npm run lint` | Type-check |
 | `npm run db:generate` | Generate Prisma client |
 | `npm run db:migrate` | Run migrations |
-| `npm run db:seed` | Seed demo data |
 
 ## Structure
 

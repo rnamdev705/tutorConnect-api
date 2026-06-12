@@ -20,7 +20,24 @@ export function createApp(): express.Application {
   );
   app.use(
     cors({
-      origin: env.corsOrigins,
+      origin(origin, callback) {
+        if (!origin) {
+          callback(null, true);
+          return;
+        }
+        if (env.corsOrigins.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+        if (
+          !env.isProduction &&
+          /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+        ) {
+          callback(null, true);
+          return;
+        }
+        callback(new Error(`CORS blocked origin: ${origin}`));
+      },
       credentials: true,
     }),
   );

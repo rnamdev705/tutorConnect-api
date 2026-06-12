@@ -73,7 +73,7 @@ registry.registerPath({
   tags: ["Tutors"],
   summary: "List tutors",
   description:
-    "Returns a paginated directory of tutor profiles. Parents use this to browse tutors before sending invitations. Supports search by display name.",
+    "Returns a paginated directory of tutor profiles. Parents use this to browse tutors before sending invitations. Search matches display name, qualifications, and experiences (subjects, locations, etc.).",
   security: secured,
   request: { query: tutorListQuerySchema },
   responses: {

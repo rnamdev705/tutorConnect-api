@@ -88,7 +88,7 @@ export async function getCaseById(userId: string, role: Role, caseId: string) {
             select: {
               id: true,
               email: true,
-              tutorProfile: { select: { displayName: true } },
+              tutorProfile: { select: { id: true, displayName: true } },
             },
           },
         },
@@ -106,6 +106,7 @@ export async function getCaseById(userId: string, role: Role, caseId: string) {
         id: inv.tutor.id,
         email: inv.tutor.email,
         displayName: inv.tutor.tutorProfile?.displayName ?? null,
+        profileId: inv.tutor.tutorProfile?.id ?? null,
       },
     })),
   };

@@ -15,16 +15,56 @@ function serializeProfile(profile: {
   return profile;
 }
 
-export async function listTutors(query: TutorListQuery) {
-  const where = query.search
-    ? { displayName: { contains: query.search, mode: "insensitive" as const } }
-    : {};
+type TutorListRow = {
+  id: string;
+  tutorId: string;
+  displayName: string;
+  qualifications: string[];
+  experiences: string[];
+};
 
+const TUTOR_SEARCH_WHERE = `
+  "displayName" ILIKE $1
+  OR EXISTS (SELECT 1 FROM unnest(qualifications) AS q WHERE q ILIKE $1)
+  OR EXISTS (SELECT 1 FROM unnest(experiences) AS e WHERE e ILIKE $1)
+`;
+
+export async function listTutors(query: TutorListQuery) {
+  const search = query.search?.trim();
   const skip = (query.page - 1) * query.limit;
+
+  if (search) {
+    const pattern = `%${search}%`;
+    const whereClause = TUTOR_SEARCH_WHERE;
+
+    const [profiles, countRows] = await Promise.all([
+      prisma.$queryRawUnsafe<TutorListRow[]>(
+        `SELECT id, "tutorId", "displayName", qualifications, experiences
+         FROM tutor_profiles
+         WHERE ${whereClause}
+         ORDER BY "displayName" ASC
+         LIMIT $2 OFFSET $3`,
+        pattern,
+        query.limit,
+        skip,
+      ),
+      prisma.$queryRawUnsafe<{ count: bigint }[]>(
+        `SELECT COUNT(*)::bigint AS count FROM tutor_profiles WHERE ${whereClause}`,
+        pattern,
+      ),
+    ]);
+
+    const total = Number(countRows[0]?.count ?? 0);
+    const totalPages = total === 0 ? 0 : Math.ceil(total / query.limit);
+
+    return {
+      data: profiles,
+      meta: { page: query.page, limit: query.limit, total, totalPages },
+    };
+  }
 
   const [profiles, total] = await Promise.all([
     prisma.tutorProfile.findMany({
-      where,
       orderBy: { displayName: "asc" },
       skip,
       take: query.limit,
@@ -36,7 +76,7 @@ export async function listTutors(query: TutorListQuery) {
         experiences: true,
       },
     }),
-    prisma.tutorProfile.count({ where }),
+    prisma.tutorProfile.count(),
   ]);
 
   const totalPages = total === 0 ? 0 : Math.ceil(total / query.limit);

@@ -79,6 +79,10 @@ export async function login(input: LoginInput) {
     throw new AppError(401, "Invalid email or password", "INVALID_CREDENTIALS");
   }
 
+  if (input.role && user.role !== input.role) {
+    throw new AppError(401, "Invalid email or password", "INVALID_CREDENTIALS");
+  }
+
   return buildAuthResponse(user);
 }
 

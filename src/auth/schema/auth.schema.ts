@@ -6,11 +6,18 @@ export const loginSchema = z
     email: z
       .string()
       .email("Invalid email address")
-      .openapi({ example: "sarah.chen@demo.com" }),
+      .openapi({ example: "parent@example.com" }),
     password: z
       .string()
       .min(1, "Password is required")
-      .openapi({ example: "Demo1234!" }),
+      .openapi({ example: "your-secure-password" }),
+    role: z
+      .enum(["PARENT", "TUTOR"])
+      .optional()
+      .openapi({
+        description: "When provided, login fails if the account role does not match.",
+        example: "PARENT",
+      }),
   })
   .openapi("LoginRequest");
 
@@ -25,7 +32,7 @@ export const registerSchema = z
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
-      .openapi({ example: "Demo1234!" }),
+      .openapi({ example: "your-secure-password" }),
     role: z.enum(["PARENT", "TUTOR"]).openapi({ example: "PARENT" }),
     displayName: z
       .string()
@@ -68,7 +75,7 @@ registry.registerPath({
   tags: ["Auth"],
   summary: "Create account",
   description:
-    "Registers a new parent or tutor account. Passwords are hashed server-side. Tutors receive an empty tutor profile seeded with their display name. Returns a JWT on success (same shape as login).",
+    "Registers a new parent or tutor account. Passwords are hashed server-side. Tutors receive an empty tutor profile initialized with their display name. Returns a JWT on success (same shape as login).",
   request: {
     body: { content: { "application/json": { schema: registerSchema } } },
   },
