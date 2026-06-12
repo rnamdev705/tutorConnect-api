@@ -1,9 +1,23 @@
 import { Router } from "express";
 import { requireAuth } from "../../middleware/auth.js";
-import { loginSchema } from "../schema/auth.schema.js";
+import { loginSchema, registerSchema } from "../schema/auth.schema.js";
 import * as authService from "../service/auth.service.js";
 
 const router = Router();
+
+router.post("/register", async (req, res, next) => {
+  try {
+    const input = registerSchema.parse(req.body);
+    const result = await authService.register({
+      ...input,
+      email: input.email.toLowerCase(),
+      displayName: input.displayName.trim(),
+    });
+    res.status(201).json(result);
+  } catch (err) {
+    next(err);
+  }
+});
 
 router.post("/login", async (req, res, next) => {
   try {

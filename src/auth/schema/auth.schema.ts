@@ -16,6 +16,27 @@ export const loginSchema = z
 
 export type LoginInput = z.infer<typeof loginSchema>;
 
+export const registerSchema = z
+  .object({
+    email: z
+      .string()
+      .email("Invalid email address")
+      .openapi({ example: "name@example.com" }),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .openapi({ example: "Demo1234!" }),
+    role: z.enum(["PARENT", "TUTOR"]).openapi({ example: "PARENT" }),
+    displayName: z
+      .string()
+      .min(1, "Name is required")
+      .max(100)
+      .openapi({ example: "Riya Sharma" }),
+  })
+  .openapi("RegisterRequest");
+
+export type RegisterInput = z.infer<typeof registerSchema>;
+
 const loginUserSchema = z
   .object({
     id: z.string().uuid(),
@@ -40,6 +61,32 @@ export const userSchema = z
     updatedAt: z.coerce.date(),
   })
   .openapi("User");
+
+registry.registerPath({
+  method: "post",
+  path: "/auth/register",
+  tags: ["Auth"],
+  summary: "Create account",
+  description:
+    "Registers a new parent or tutor account. Passwords are hashed server-side. Tutors receive an empty tutor profile seeded with their display name. Returns a JWT on success (same shape as login).",
+  request: {
+    body: { content: { "application/json": { schema: registerSchema } } },
+  },
+  responses: {
+    201: {
+      description: "Account created",
+      content: { "application/json": { schema: loginResponseSchema } },
+    },
+    400: {
+      description: "Validation error",
+      content: { "application/json": { schema: errorSchema } },
+    },
+    409: {
+      description: "Email already registered",
+      content: { "application/json": { schema: errorSchema } },
+    },
+  },
+});
 
 registry.registerPath({
   method: "post",
