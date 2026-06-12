@@ -1,5 +1,3 @@
-// TutorConnect — PostgreSQL schema (models added in later modules)
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,4 +5,94 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cases        TuitionCase[]    @relation("ParentCases")
+  invitations  CaseInvitation[]
+  documents    Document[]
+  tutorProfile TutorProfile?
+}
+
+enum Role {
+  PARENT
+  TUTOR
+}
+
+model TuitionCase {
+  id            String     @id @default(uuid())
+  title         String
+  subject       String
+  level         String
+  location      String
+  budgetPerHour Decimal    @db.Decimal(10, 2)
+  status        CaseStatus @default(OPEN)
+  ownerId       String
+  owner         User       @relation("ParentCases", fields: [ownerId], references: [id])
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  invitations CaseInvitation[]
+  documents   Document[]
+
+  @@map("cases")
+}
+
+enum CaseStatus {
+  OPEN
+  MATCHED
+  CLOSED
+}
+
+model CaseInvitation {
+  id        String   @id @default(uuid())
+  caseId    String
+  tutorId   String
+  createdAt DateTime @default(now())
+
+  tuitionCase TuitionCase @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  tutor       User        @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, tutorId])
+  @@map("case_invitations")
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  originalName String
+  storagePath  String
+  mimeType     String
+  sizeBytes    Int
+  uploadedById String
+  caseId       String?
+  profileId    String?
+  createdAt    DateTime @default(now())
+
+  uploadedBy  User          @relation(fields: [uploadedById], references: [id])
+  tuitionCase TuitionCase?  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  profile     TutorProfile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+model TutorProfile {
+  id             String   @id @default(uuid())
+  tutorId        String   @unique
+  displayName    String
+  qualifications String[]
+  experiences    String[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tutor     User       @relation(fields: [tutorId], references: [id])
+  documents Document[]
+
+  @@map("tutor_profiles")
 }

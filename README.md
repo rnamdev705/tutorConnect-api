@@ -36,6 +36,16 @@ npm run dev
 | `npm run db:migrate` | Run migrations (when models are added) |
 | `npm run db:push` | Push schema to DB |
 | `npm run db:studio` | Prisma Studio |
+| `npm run db:seed` | Seed demo users, cases, profiles |
+
+## Demo credentials (after seed)
+
+| Email | Password | Role |
+|-------|----------|------|
+| parent1@demo.com | Demo1234! | Parent |
+| parent2@demo.com | Demo1234! | Parent |
+| tutor1@demo.com | Demo1234! | Tutor |
+| tutor2@demo.com | Demo1234! | Tutor |
 
 ## Structure
 
