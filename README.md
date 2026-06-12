@@ -91,12 +91,27 @@ src/
 
 Each module owns its Zod schemas (validation + docs). Shared OpenAPI registry lives in `lib/registry.ts`.
 
+## Cases
+
+| Endpoint | Auth | Role | Description |
+|----------|------|------|-------------|
+| `POST /cases` | Yes | Parent | Create a case |
+| `GET /cases` | Yes | Any | List cases (paginated, searchable) |
+| `GET /cases/:id` | Yes | Any | View case (owner or invited tutor) |
+| `PATCH /cases/:id` | Yes | Parent | Update own case |
+| `POST /cases/:id/invitations` | Yes | Parent | Invite a tutor |
+| `DELETE /cases/:id/invitations/:tutorId` | Yes | Parent | Revoke invitation |
+
+**Access control:** Parents see only their cases. Tutors see only invited cases. Unauthorized access to a specific case returns `404` (not `403`) to avoid leaking existence. Mutations by non-owners return `403`.
+
+**Query params for `GET /cases`:** `page`, `limit`, `search`, `subject`, `level`, `status`
+
 ## Module roadmap
 
 | Module | Status |
 |--------|--------|
 | 1. Backend init | Done |
 | 2. Auth | Done |
-| 3. Tuition cases + invitations | Pending |
+| 3. Tuition cases + invitations | Done |
 | 4. Documents | Pending |
 | 5. Tutor profiles + directory | Pending |

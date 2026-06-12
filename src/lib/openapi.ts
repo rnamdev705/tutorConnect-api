@@ -1,6 +1,7 @@
 import { OpenApiGeneratorV3 } from "@asteasolutions/zod-to-openapi";
 import { env } from "../config/env.js";
 import "../auth/schema/auth.schema.js";
+import "../cases/schema/case.schema.js";
 import "../health/schema/health.schema.js";
 import { registry } from "./registry.js";
 
