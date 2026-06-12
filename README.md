@@ -15,12 +15,23 @@ Backend REST API for the TutorConnect tuition marketplace.
 
 ```bash
 npm install
-cp .env.example .env   # set DATABASE_URL and JWT_SECRET
+cp .env.example .env   # set DATABASE_URL, DIRECT_URL (Neon), and JWT_SECRET
 npm run db:generate
 npm run db:migrate
 npm run db:seed
 npm run dev
 ```
+
+### Neon PostgreSQL
+
+Use two connection strings from the [Neon console](https://console.neon.tech):
+
+| Variable | Neon dashboard | Used by |
+|----------|----------------|---------|
+| `DATABASE_URL` | **Pooled** (`-pooler` in host) | API runtime (Prisma queries) |
+| `DIRECT_URL` | **Direct** | `prisma migrate`, `db push`, seed |
+
+Idle disconnect errors (`E57P01`) in dev are reduced with the pooled URL. Wake a suspended branch in the Neon console if the first request fails after idle time.
 
 | URL | Description |
 |-----|-------------|
