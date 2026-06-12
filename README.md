@@ -7,22 +7,56 @@ Backend REST API for the TutorConnect tuition marketplace.
 - Node.js + TypeScript
 - Express
 - Prisma + PostgreSQL
-- Swagger UI (OpenAPI 3.0)
+- JWT authentication
+- Zod + OpenAPI 3.0 (`@asteasolutions/zod-to-openapi`)
+- Scalar API reference UI
 
 ## Setup
 
 ```bash
 npm install
-cp .env.example .env   # set DATABASE_URL
+cp .env.example .env   # set DATABASE_URL and JWT_SECRET
 npm run db:generate
+npm run db:migrate
+npm run db:seed
 npm run dev
 ```
 
 | URL | Description |
 |-----|-------------|
 | http://localhost:3001/api/v1/health | Health check |
-| http://localhost:3001/api-docs | Swagger UI |
-| http://localhost:3001/api-docs.json | OpenAPI JSON |
+| http://localhost:3001/api/v1/auth/login | Login |
+| http://localhost:3001/api/v1/auth/me | Current user (auth required) |
+| http://localhost:3001/api-docs | API docs (Scalar UI) |
+| http://localhost:3001/api-docs.json | OpenAPI JSON spec |
+
+## Auth
+
+Stateless **JWT** bearer tokens.
+
+| Endpoint | Auth | Description |
+|----------|------|-------------|
+| `POST /auth/login` | No | Returns `{ token, user }` |
+| `POST /auth/logout` | Yes | Client discards token (204) |
+| `GET /auth/me` | Yes | Current user profile |
+
+Send `Authorization: Bearer <token>` on protected routes.
+
+| Status | Meaning |
+|--------|---------|
+| `401` | Missing, invalid, or expired token |
+| `403` | Authenticated but wrong role (used by role middleware) |
+
+## Demo credentials (after seed)
+
+Password for all accounts: `Demo1234!`
+
+| Email | Role |
+|-------|------|
+| sarah.chen@demo.com | Parent |
+| raj.kumar@demo.com | Parent |
+| alice.tan@demo.com | Tutor |
+| benjamin.lim@demo.com | Tutor |
 
 ## Scripts
 
@@ -33,30 +67,36 @@ npm run dev
 | `npm start` | Run production build |
 | `npm run lint` | Type-check |
 | `npm run db:generate` | Generate Prisma client |
-| `npm run db:migrate` | Run migrations (when models are added) |
-| `npm run db:push` | Push schema to DB |
-| `npm run db:studio` | Prisma Studio |
-| `npm run db:seed` | Seed demo users, cases, profiles |
-
-## Demo credentials (after seed)
-
-| Email | Password | Role |
-|-------|----------|------|
-| parent1@demo.com | Demo1234! | Parent |
-| parent2@demo.com | Demo1234! | Parent |
-| tutor1@demo.com | Demo1234! | Tutor |
-| tutor2@demo.com | Demo1234! | Tutor |
+| `npm run db:migrate` | Run migrations |
+| `npm run db:seed` | Seed demo data |
 
 ## Structure
 
 ```
 src/
-├── config/       # env, OpenAPI
-├── lib/          # Prisma client
-├── middleware/   # error handling
-├── routes/       # API routes
+├── auth/
+│   ├── schema/   # Zod schemas + OpenAPI paths
+│   ├── routes/
+│   └── service/
+├── health/
+│   ├── schema/
+│   └── routes/
+├── config/
+├── lib/          # prisma, jwt, openapi registry
+├── middleware/
+├── routes/       # mounts module routers
 ├── app.ts
 └── index.ts
-prisma/
-└── schema.prisma
 ```
+
+Each module owns its Zod schemas (validation + docs). Shared OpenAPI registry lives in `lib/registry.ts`.
+
+## Module roadmap
+
+| Module | Status |
+|--------|--------|
+| 1. Backend init | Done |
+| 2. Auth | Done |
+| 3. Tuition cases + invitations | Pending |
+| 4. Documents | Pending |
+| 5. Tutor profiles + directory | Pending |
