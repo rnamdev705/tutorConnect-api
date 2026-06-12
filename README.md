@@ -36,7 +36,7 @@ Idle disconnect errors (`E57P01`) in dev are reduced with the pooled URL. Wake a
 
 Free-tier Neon **suspends the database after ~5 minutes of inactivity**. The API handles this automatically:
 
-1. **Neon WebSocket driver** — Prisma uses `@prisma/adapter-neon` when `DATABASE_URL` contains `neon.tech`
+1. **TCP driver (default)** — Node/Express uses Prisma’s standard PostgreSQL driver with the pooled `DATABASE_URL`. Set `USE_NEON_DRIVER=true` only for serverless/edge (WebSocket driver).
 2. **Query retries** — failed queries retry up to 4 times while compute wakes
 3. **In-process keepalive** — pings the DB every 4 minutes while the API process is running (`DB_KEEPALIVE_ENABLED`, on by default for Neon)
 4. **Readiness endpoint** — `GET /api/v1/health/ready` pings the database (use for deploy probes)

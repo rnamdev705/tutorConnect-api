@@ -14,23 +14,63 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/** Use Neon's WebSocket driver when hosted on Neon (handles free-tier suspend/wake better than raw TCP). */
-function usesNeonDriver() {
-  const url = process.env.DATABASE_URL ?? "";
-  return url.includes("neon.tech") || process.env.USE_NEON_DRIVER === "true";
+/**
+ * Neon WebSocket driver is for serverless/edge (Vercel, Cloudflare Workers).
+ * Node.js Express should use the default Prisma TCP driver with the pooled DATABASE_URL.
+ */
+function usesNeonWebSocketDriver() {
+  return process.env.USE_NEON_DRIVER === "true";
 }
 
 function createBasePrismaClient() {
   const log: Prisma.LogLevel[] =
     process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"];
 
-  if (usesNeonDriver()) {
+  if (usesNeonWebSocketDriver()) {
     neonConfig.webSocketConstructor = ws;
     const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL! });
     return new PrismaClient({ adapter, log });
   }
 
   return new PrismaClient({ log });
+}
+
+function collectErrorText(error: unknown, depth = 0): string[] {
+  if (!error || depth > 6) return [];
+
+  if (typeof error === "string") return [error];
+
+  if (error instanceof Error) {
+    const parts = [error.message];
+    if ("code" in error && typeof error.code === "string") {
+      parts.push(error.code);
+    }
+    if (error.cause) {
+      parts.push(...collectErrorText(error.cause, depth + 1));
+    }
+    return parts;
+  }
+
+  if (typeof error === "object") {
+    const record = error as Record<string, unknown>;
+    const parts: string[] = [];
+
+    if (typeof record.message === "string") parts.push(record.message);
+    if (typeof record.code === "string") parts.push(record.code);
+
+    const nested = (record as { [key: symbol]: unknown })[Symbol.for("kError")];
+    if (nested) parts.push(...collectErrorText(nested, depth + 1));
+
+    if (Array.isArray((error as AggregateError).errors)) {
+      for (const inner of (error as AggregateError).errors) {
+        parts.push(...collectErrorText(inner, depth + 1));
+      }
+    }
+
+    return parts;
+  }
+
+  return [String(error)];
 }
 
 async function executeWithRetry<T>(
@@ -92,15 +132,16 @@ export function isPrismaConnectionError(error: unknown): boolean {
     return error.code === "P1001" || error.code === "P1002" || error.code === "P1017";
   }
 
-  if (error instanceof Error) {
-    return (
-      error.message.includes("Can't reach database server") ||
-      error.message.includes("Connection terminated") ||
-      error.message.includes("terminating connection due to administrator command") ||
-      error.message.includes("ECONNREFUSED") ||
-      error.message.includes("ETIMEDOUT")
-    );
-  }
+  const text = collectErrorText(error).join(" ").toLowerCase();
 
-  return false;
+  return (
+    text.includes("can't reach database server") ||
+    text.includes("connection terminated") ||
+    text.includes("terminating connection due to administrator command") ||
+    text.includes("econnrefused") ||
+    text.includes("etimedout") ||
+    text.includes("enotfound") ||
+    text.includes("socket hang up") ||
+    text.includes("connection reset")
+  );
 }
