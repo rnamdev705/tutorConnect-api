@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import multer from "multer";
 import { ZodError } from "zod";
 import { env } from "../config/env.js";
 
@@ -30,6 +31,17 @@ export function errorHandler(
         ...(err.code && { code: err.code }),
       },
     });
+    return;
+  }
+
+  if (err instanceof multer.MulterError) {
+    const message =
+      err.code === "LIMIT_FILE_SIZE"
+        ? "File too large"
+        : err.code === "LIMIT_UNEXPECTED_FILE"
+          ? "Unexpected file field"
+          : "Upload failed";
+    res.status(400).json({ error: { message, code: err.code } });
     return;
   }
 

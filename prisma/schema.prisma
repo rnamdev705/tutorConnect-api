@@ -67,7 +67,7 @@ model CaseInvitation {
 model Document {
   id           String   @id @default(uuid())
   originalName String
-  storagePath  String
+  data         Bytes
   mimeType     String
   sizeBytes    Int
   uploadedById String

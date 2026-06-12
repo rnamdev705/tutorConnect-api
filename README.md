@@ -113,5 +113,17 @@ Each module owns its Zod schemas (validation + docs). Shared OpenAPI registry li
 | 1. Backend init | Done |
 | 2. Auth | Done |
 | 3. Tuition cases + invitations | Done |
-| 4. Documents | Pending |
+| 4. Documents | Done |
 | 5. Tutor profiles + directory | Pending |
+
+## Documents
+
+| Endpoint | Auth | Description |
+|----------|------|-------------|
+| `POST /cases/:caseId/documents` | Yes | Upload file (`multipart/form-data`, field: `file`) |
+| `GET /cases/:caseId/documents` | Yes | List case documents |
+| `GET /documents/:id/download` | Yes | Download (auth re-checked) |
+
+**Allowed types:** pdf, docx, png, jpg — **max size:** 10 MB (`MAX_FILE_SIZE_MB`).
+
+**Storage:** file bytes saved in PostgreSQL (`documents.data` BYTEA). Raw file data is never exposed in list responses.

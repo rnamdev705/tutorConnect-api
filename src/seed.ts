@@ -105,12 +105,14 @@ async function main() {
     },
   });
 
+  const demoPdf = Buffer.from("%PDF-1.4 demo document for TutorConnect seed\n");
+
   await prisma.document.create({
     data: {
       originalName: "P5_SA2_Math_paper_2024.pdf",
-      storagePath: `cases/${p5MathCase.id}/p5-sa2-math.pdf`,
+      data: demoPdf,
       mimeType: "application/pdf",
-      sizeBytes: 284_512,
+      sizeBytes: demoPdf.length,
       uploadedBy: { connect: { id: sarahChen.id } },
       tuitionCase: { connect: { id: p5MathCase.id } },
     },
@@ -118,9 +120,9 @@ async function main() {
   await prisma.document.create({
     data: {
       originalName: "NUS_degree_certificate.pdf",
-      storagePath: `profiles/${aliceProfile.id}/degree.pdf`,
+      data: demoPdf,
       mimeType: "application/pdf",
-      sizeBytes: 520_000,
+      sizeBytes: demoPdf.length,
       uploadedBy: { connect: { id: aliceTan.id } },
       profile: { connect: { id: aliceProfile.id } },
     },
