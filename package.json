@@ -5,14 +5,14 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "node scripts/build.cjs",
-    "start": "node scripts/start.cjs",
+    "build": "tsc",
+    "start": "node dist/index.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "lint": "tsc --noEmit",
-    "postinstall": "prisma generate && node scripts/postinstall.cjs"
+    "postinstall": "prisma generate"
   },
   "license": "UNLICENSED",
   "engines": {

@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: tutorconnect-api
-    runtime: node
-    # Root Directory in the dashboard must be blank (repo root), NOT "src"
-    buildCommand: npm install && npm run build
-    startCommand: npm start
-    healthCheckPath: /api/v1/health
