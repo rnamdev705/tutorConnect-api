@@ -1,11 +1,13 @@
 import { createApp } from "./app.js";
 import { env } from "./config/env.js";
-import { prisma } from "./lib/prisma.js";
+import { startDatabaseKeepAlive, stopDatabaseKeepAlive } from "./lib/dbKeepAlive.js";
+import { connectDatabase, prisma } from "./lib/prisma.js";
 
 const app = createApp();
 
 async function main(): Promise<void> {
-  await prisma.$connect();
+  await connectDatabase();
+  startDatabaseKeepAlive();
 
   app.listen(env.PORT, () => {
     console.log(`TutorConnect API running on http://localhost:${env.PORT}`);
@@ -19,12 +21,17 @@ main().catch((err) => {
   process.exit(1);
 });
 
-process.on("SIGINT", async () => {
+async function shutdown() {
+  stopDatabaseKeepAlive();
   await prisma.$disconnect();
+}
+
+process.on("SIGINT", async () => {
+  await shutdown();
   process.exit(0);
 });
 
 process.on("SIGTERM", async () => {
-  await prisma.$disconnect();
+  await shutdown();
   process.exit(0);
 });

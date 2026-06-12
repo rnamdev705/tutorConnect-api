@@ -33,9 +33,33 @@ Use two connection strings from the [Neon console](https://console.neon.tech):
 
 Idle disconnect errors (`E57P01`) in dev are reduced with the pooled URL. Wake a suspended branch in the Neon console if the first request fails after idle time.
 
+### Neon free tier (production)
+
+Free-tier Neon **suspends the database after ~5 minutes of inactivity**. The API handles this automatically:
+
+1. **Neon WebSocket driver** — Prisma uses `@prisma/adapter-neon` when `DATABASE_URL` contains `neon.tech`
+2. **Query retries** — failed queries retry up to 4 times while compute wakes
+3. **In-process keepalive** — pings the DB every 4 minutes while the API process is running (`DB_KEEPALIVE_ENABLED`, on by default for Neon)
+4. **Readiness endpoint** — `GET /api/v1/health/ready` pings the database (use for deploy probes)
+
+If your host also sleeps (e.g. Render free web service), add a **free external cron** so both API and DB stay warm:
+
+- [cron-job.org](https://cron-job.org) or UptimeRobot (free)
+- Every **4 minutes**: `GET https://your-api.example.com/api/v1/health/ready`
+
+Set on your host:
+
+```env
+DATABASE_URL=...-pooler....neon.tech/neondb?sslmode=require&connect_timeout=30
+DIRECT_URL=....neon.tech/neondb?sslmode=require&connect_timeout=30
+DB_KEEPALIVE_ENABLED=true
+DB_KEEPALIVE_INTERVAL_MS=240000
+```
+
 | URL | Description |
 |-----|-------------|
-| http://localhost:3001/api/v1/health | Health check |
+| http://localhost:3001/api/v1/health | Liveness (no DB) |
+| http://localhost:3001/api/v1/health/ready | Readiness (pings DB) |
 | http://localhost:3001/api/v1/auth/login | Login |
 | http://localhost:3001/api/v1/auth/me | Current user (auth required) |
 | http://localhost:3001/api-docs | OpenAPI docs (Swagger UI) |

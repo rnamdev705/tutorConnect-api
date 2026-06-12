@@ -1,7 +1,9 @@
+import { Prisma } from "@prisma/client";
 import type { NextFunction, Request, Response } from "express";
 import multer from "multer";
 import { ZodError } from "zod";
 import { env } from "../config/env.js";
+import { isPrismaConnectionError } from "../lib/prisma.js";
 
 /** Application-level error with an HTTP status code. */
 export class AppError extends Error {
@@ -50,6 +52,29 @@ export function errorHandler(
       error: {
         message: "Validation failed",
         details: err.flatten().fieldErrors,
+      },
+    });
+    return;
+  }
+
+  if (isPrismaConnectionError(err)) {
+    console.error("[db] connection error:", err);
+    res.status(503).json({
+      error: {
+        message:
+          "Database is temporarily unavailable. Wait a few seconds and try again (Neon may be waking up).",
+        code: "DB_UNAVAILABLE",
+      },
+    });
+    return;
+  }
+
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    console.error("[db] prisma error:", err.code, err.message);
+    res.status(500).json({
+      error: {
+        message: env.isProduction ? "Internal server error" : `Database error (${err.code})`,
+        code: err.code,
       },
     });
     return;
