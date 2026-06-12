@@ -113,7 +113,7 @@ Each module owns its Zod schemas (validation + docs). Shared OpenAPI registry li
 | 2. Auth | Done |
 | 3. Tuition cases + invitations | Done |
 | 4. Documents | Done |
-| 5. Tutor profiles + directory | Pending |
+| 5. Tutor profiles + directory | Done |
 
 ## Documents
 
@@ -126,3 +126,18 @@ Each module owns its Zod schemas (validation + docs). Shared OpenAPI registry li
 **Allowed types:** pdf, docx, png, jpg — **max size:** 10 MB (`MAX_FILE_SIZE_MB`).
 
 **Storage:** file bytes saved in PostgreSQL (`documents.data` BYTEA). Raw file data is never exposed in list responses.
+
+## Tutors
+
+| Endpoint | Auth | Role | Description |
+|----------|------|------|-------------|
+| `GET /tutors` | Yes | Any | Browse tutor directory (paginated, searchable) |
+| `GET /tutors/:id` | Yes | Any | View a tutor profile |
+| `GET /tutors/:id/documents` | Yes | Any | List documents on a profile |
+| `GET /tutors/me/profile` | Yes | Tutor | Get own profile |
+| `PUT /tutors/me/profile` | Yes | Tutor | Create or update own profile |
+| `POST /tutors/me/profile/documents` | Yes | Tutor | Upload certificate / portfolio file |
+
+**Query params for `GET /tutors`:** `page`, `limit`, `search` (display name)
+
+Profile documents use the same file rules as case documents. Download via `GET /documents/:id/download`.

@@ -4,6 +4,7 @@ import "../auth/schema/auth.schema.js";
 import "../cases/schema/case.schema.js";
 import "../documents/schema/document.schema.js";
 import "../health/schema/health.schema.js";
+import "../tutors/schema/tutor.schema.js";
 import { registry } from "./registry.js";
 
 export function generateOpenApiDocument() {
@@ -22,6 +23,7 @@ export function generateOpenApiDocument() {
       { name: "Auth", description: "Login, logout, and current-user lookup." },
       { name: "Cases", description: "Tuition listings, invitations, and access rules by role." },
       { name: "Documents", description: "Files attached to a case (stored in Postgres)." },
+      { name: "Tutors", description: "Tutor directory and profile management." },
     ],
     servers: [
       {
