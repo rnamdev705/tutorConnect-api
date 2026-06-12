@@ -9,7 +9,7 @@ Backend REST API for the TutorConnect tuition marketplace.
 - Prisma + PostgreSQL
 - JWT authentication
 - Zod + OpenAPI 3.0 (`@asteasolutions/zod-to-openapi`)
-- Scalar API reference UI
+- Swagger UI
 
 ## Setup
 
@@ -27,8 +27,7 @@ npm run dev
 | http://localhost:3001/api/v1/health | Health check |
 | http://localhost:3001/api/v1/auth/login | Login |
 | http://localhost:3001/api/v1/auth/me | Current user (auth required) |
-| http://localhost:3001/api-docs | API docs (Scalar UI) |
-| http://localhost:3001/api-docs.json | OpenAPI JSON spec |
+| http://localhost:3001/api-docs | OpenAPI docs (Swagger UI) |
 
 ## Auth
 

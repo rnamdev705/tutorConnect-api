@@ -1,7 +1,7 @@
-import { apiReference } from "@scalar/express-api-reference";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
+import swaggerUi from "swagger-ui-express";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFound.js";
@@ -13,7 +13,11 @@ export function createApp(): express.Application {
   const app = express();
   const openApiDocument = generateOpenApiDocument();
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+    }),
+  );
   app.use(
     cors({
       origin: env.corsOrigins,
@@ -22,16 +26,18 @@ export function createApp(): express.Application {
   );
   app.use(express.json({ limit: "1mb" }));
 
-  app.get("/api-docs.json", (_req, res) => {
-    res.json(openApiDocument);
+  app.get("/", (_req, res) => {
+    res.redirect("/api-docs");
   });
 
   app.use(
     "/api-docs",
-    apiReference({
-      theme: "kepler",
-      spec: {
-        content: openApiDocument,
+    swaggerUi.serve,
+    swaggerUi.setup(openApiDocument, {
+      customSiteTitle: "TutorConnect API Docs",
+      swaggerOptions: {
+        persistAuthorization: true,
+        displayRequestDuration: true,
       },
     }),
   );

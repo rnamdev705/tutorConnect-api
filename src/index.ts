@@ -10,8 +10,7 @@ async function main(): Promise<void> {
   app.listen(env.PORT, () => {
     console.log(`TutorConnect API running on http://localhost:${env.PORT}`);
     console.log(`API base:     http://localhost:${env.PORT}${env.API_PREFIX}`);
-    console.log(`Swagger UI:   http://localhost:${env.PORT}/api-docs`);
-    console.log(`OpenAPI JSON: http://localhost:${env.PORT}/api-docs.json`);
+    console.log(`API docs:     http://localhost:${env.PORT}/api-docs`);
   });
 }
 
