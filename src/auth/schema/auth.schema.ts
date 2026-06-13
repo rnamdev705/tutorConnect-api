@@ -44,6 +44,23 @@ export const registerSchema = z
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 
+export const updateMeSchema = z
+  .object({
+    displayName: z.string().min(1).max(100).optional(),
+    password: z.string().min(8).max(128).optional(),
+    currentPassword: z.string().min(1).optional(),
+  })
+  .refine((data) => data.displayName !== undefined || data.password !== undefined, {
+    message: "At least one field is required",
+  })
+  .refine((data) => !data.password || data.currentPassword, {
+    message: "Current password is required to set a new password",
+    path: ["currentPassword"],
+  })
+  .openapi("UpdateMeRequest");
+
+export type UpdateMeInput = z.infer<typeof updateMeSchema>;
+
 const loginUserSchema = z
   .object({
     id: z.string().uuid(),
@@ -64,6 +81,7 @@ export const userSchema = z
     id: z.string().uuid(),
     email: z.string().email(),
     role: z.enum(["PARENT", "TUTOR"]),
+    displayName: z.string().nullable(),
     createdAt: z.coerce.date(),
     updatedAt: z.coerce.date(),
   })
@@ -132,6 +150,33 @@ registry.registerPath({
     204: { description: "Logged out" },
     401: {
       description: "Not authenticated",
+      content: { "application/json": { schema: errorSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/auth/me",
+  tags: ["Auth"],
+  summary: "Update current user profile",
+  description:
+    "Updates the logged-in user's display name and/or password. Tutors also sync display name to their public tutor profile.",
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: { content: { "application/json": { schema: updateMeSchema } } },
+  },
+  responses: {
+    200: {
+      description: "Updated user",
+      content: { "application/json": { schema: userSchema } },
+    },
+    400: {
+      description: "Validation error",
+      content: { "application/json": { schema: errorSchema } },
+    },
+    401: {
+      description: "Not authenticated or wrong current password",
       content: { "application/json": { schema: errorSchema } },
     },
   },

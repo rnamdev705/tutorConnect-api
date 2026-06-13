@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../../middleware/auth.js";
-import { loginSchema, registerSchema } from "../schema/auth.schema.js";
+import { loginSchema, registerSchema, updateMeSchema } from "../schema/auth.schema.js";
 import * as authService from "../service/auth.service.js";
 
 const router = Router();
@@ -39,6 +39,16 @@ router.post("/logout", requireAuth, (_req, res) => {
 router.get("/me", requireAuth, async (req, res, next) => {
   try {
     const user = await authService.getCurrentUser(req.user!.id);
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch("/me", requireAuth, async (req, res, next) => {
+  try {
+    const input = updateMeSchema.parse(req.body);
+    const user = await authService.updateMe(req.user!.id, input);
     res.json(user);
   } catch (err) {
     next(err);

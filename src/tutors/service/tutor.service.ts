@@ -103,19 +103,28 @@ export async function getMyProfile(tutorId: string) {
 }
 
 export async function upsertMyProfile(tutorId: string, input: UpsertProfileInput) {
-  const profile = await prisma.tutorProfile.upsert({
-    where: { tutorId },
-    create: {
-      tutorId,
-      displayName: input.displayName,
-      qualifications: input.qualifications,
-      experiences: input.experiences,
-    },
-    update: {
-      displayName: input.displayName,
-      qualifications: input.qualifications,
-      experiences: input.experiences,
-    },
+  const profile = await prisma.$transaction(async (tx) => {
+    const saved = await tx.tutorProfile.upsert({
+      where: { tutorId },
+      create: {
+        tutorId,
+        displayName: input.displayName,
+        qualifications: input.qualifications,
+        experiences: input.experiences,
+      },
+      update: {
+        displayName: input.displayName,
+        qualifications: input.qualifications,
+        experiences: input.experiences,
+      },
+    });
+
+    await tx.user.update({
+      where: { id: tutorId },
+      data: { displayName: input.displayName },
+    });
+
+    return saved;
   });
 
   return serializeProfile(profile);
